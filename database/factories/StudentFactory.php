@@ -18,7 +18,7 @@ class StudentFactory extends Factory
     {
         return [
             'full_name' => $this->faker->name,
-            'phone' => '998' . $this->faker->randomElement(['90','91','93','94','97']) . $this->faker->numberBetween(1000000,9999999),
+            'phone' => '+998' . $this->faker->randomElement(['90','91','93','94','97']) . $this->faker->numberBetween(1000000,9999999),
             'birth_date' => $this->faker->date(),
             'balance' => $this->faker->randomFloat(2, 0, 10000),
         ];

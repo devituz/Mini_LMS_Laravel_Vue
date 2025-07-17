@@ -14,8 +14,9 @@ return new class extends Migration
         Schema::create('teachers', function (Blueprint $table) {
             $table->id();
             $table->string('full_name', 100);
-            $table->string('phone', 12)->unique();
+            $table->string('phone', 13)->unique();
             $table->string('password');
+            $table->rememberToken();
             $table->timestamps();
         });
     }

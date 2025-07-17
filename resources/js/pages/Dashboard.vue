@@ -1,13 +1,41 @@
 <script setup lang="ts">
+import { Head, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/vue3';
-import PlaceholderPattern from '../components/PlaceholderPattern.vue';
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
+import type { BreadcrumbItem } from '@/types';
 
+const { props } = usePage();
+
+// Breadcrumbs
 const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: '/dashboard' },
+];
+
+const stats = [
     {
-        title: 'Dashboard',
-        href: '/dashboard',
+        title: 'Jami o‘quvchilar',
+        value: props.studentCount,
+        icon: '🎓',
+    },
+    {
+        title: 'Jami o‘qituvchilar',
+        value: props.teacherCount,
+        icon: '🧑‍🏫',
+    },
+    {
+        title: 'Jami guruhlar',
+        value: props.groupCount,
+        icon: '👥',
+    },
+    {
+        title: 'Bugungi tushum',
+        value: `${props.todaysRevenue.toLocaleString()} so‘m`,
+        icon: '💰',
+    },
+    {
+        title: 'Umumiy qarzdorlik',
+        value: `${props.totalDebt.toLocaleString()} so‘m`,
+        icon: '📉',
     },
 ];
 </script>
@@ -16,21 +44,29 @@ const breadcrumbs: BreadcrumbItem[] = [
     <Head title="Dashboard" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
-            <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <PlaceholderPattern />
-                </div>
-                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <PlaceholderPattern />
-                </div>
-                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <PlaceholderPattern />
-                </div>
+        <div class="p-6 space-y-6">
+            <!-- Statistics Cards -->
+            <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+                <Card v-for="(item, index) in stats" :key="index">
+                    <CardHeader class="flex flex-row items-center gap-4">
+                        <div class="text-3xl p-3 rounded-full bg-gray-100 dark:bg-gray-800">
+                            {{ item.icon }}
+                        </div>
+                        <div>
+                            <CardTitle class="text-sm font-medium">{{ item.title }}</CardTitle>
+                            <CardDescription class="text-shadow-2xs font-bold font-mono">
+                                {{ item.value }}
+                            </CardDescription>
+                        </div>
+                    </CardHeader>
+                </Card>
             </div>
-            <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-                <PlaceholderPattern />
-            </div>
+
+            <Card class="min-h-[300px] flex items-center justify-center">
+                <CardContent class="text-muted-foreground text-sm text-shadow-2xs font-bold font-mono">
+                    📊 Grafiklar, jadval yoki so‘nggi faoliyat shu yerda chiqadi
+                </CardContent>
+            </Card>
         </div>
     </AppLayout>
 </template>

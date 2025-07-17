@@ -3,18 +3,34 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
-class Teacher extends Model
+class Teacher extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\TeacherFactory> */
-    use HasFactory;
+    use HasFactory, Notifiable;
 
     protected $fillable = [
         'full_name',
         'phone',
         'password',
     ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected $casts = [
+        'password' => 'hashed',
+    ];
+
+    public function getAuthIdentifierName()
+    {
+        return 'phone';
+    }
+
+
 
     public function groups(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
@@ -25,5 +41,4 @@ class Teacher extends Model
     {
         return $this->belongsToMany(Student::class)->withTimestamps();
     }
-
 }

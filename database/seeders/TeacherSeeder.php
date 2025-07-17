@@ -17,27 +17,27 @@ class TeacherSeeder extends Seeder
         $teachers = [
             [
                 'full_name' => 'Jasur Tursunov',
-                'phone' => '998901234567',
+                'phone' => '+998901234567',
                 'password' => 'teacher123',
             ],
             [
                 'full_name' => 'Malika Karimova',
-                'phone' => '998911112233',
+                'phone' => '+998911112233',
                 'password' => 'hello2024',
             ],
             [
                 'full_name' => 'Shavkat Ismoilov',
-                'phone' => '998931234567',
+                'phone' => '+998931234567',
                 'password' => 'qwerty789',
             ],
             [
                 'full_name' => 'Dilnoza Toirova',
-                'phone' => '998941234567',
+                'phone' => '+998941234567',
                 'password' => 'pass4567',
             ],
             [
                 'full_name' => 'Temur Usmonov',
-                'phone' => '998951234567',
+                'phone' => '+998951234567',
                 'password' => 'secure998',
             ],
         ];

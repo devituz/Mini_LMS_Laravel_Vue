@@ -9,8 +9,8 @@ import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
 
 const form = useForm({
-    name: '',
-    email: '',
+    full_name: '',
+    phone: '',
     password: '',
     password_confirmation: '',
 });
@@ -29,15 +29,32 @@ const submit = () => {
         <form @submit.prevent="submit" class="flex flex-col gap-6">
             <div class="grid gap-6">
                 <div class="grid gap-2">
-                    <Label for="name">Name</Label>
-                    <Input id="name" type="text" required autofocus :tabindex="1" autocomplete="name" v-model="form.name" placeholder="Full name" />
-                    <InputError :message="form.errors.name" />
+                    <Label for="full_name">Full Name</Label>
+                    <Input
+                        id="full_name"
+                        type="text"
+                        required
+                        autofocus
+                        :tabindex="1"
+                        autocomplete="name"
+                        v-model="form.full_name"
+                        placeholder="Full name"
+                    />
+                    <InputError :message="form.errors.full_name" />
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="email">Email address</Label>
-                    <Input id="email" type="email" required :tabindex="2" autocomplete="email" v-model="form.email" placeholder="email@example.com" />
-                    <InputError :message="form.errors.email" />
+                    <Label for="phone">Phone Number</Label>
+                    <Input
+                        id="phone"
+                        type="tel"
+                        required
+                        :tabindex="2"
+                        autocomplete="tel"
+                        v-model="form.phone"
+                        placeholder="+1234567890"
+                    />
+                    <InputError :message="form.errors.phone" />
                 </div>
 
                 <div class="grid gap-2">
@@ -55,7 +72,7 @@ const submit = () => {
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="password_confirmation">Confirm password</Label>
+                    <Label for="password_confirmation">Confirm Password</Label>
                     <Input
                         id="password_confirmation"
                         type="password"

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('students', function (Blueprint $table) {
             $table->id();
             $table->string('full_name',100);
-            $table->string('phone', 12)->unique();
+            $table->string('phone', 13)->unique();
             $table->date('birth_date')->nullable();
             $table->decimal('balance', 10, 2)->default(0);
             $table->timestamps();
