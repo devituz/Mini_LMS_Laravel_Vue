@@ -44,7 +44,7 @@ const stats = [
     <Head title="Dashboard" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="p-6 space-y-6 ">
+        <div class="p-8 space-y-6">
             <!-- Statistics Cards -->
             <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-2 xl:grid-cols-5 ">
                 <Card v-for="(item, index) in stats" :key="index" class="border-gray-300 dark:border-gray-700

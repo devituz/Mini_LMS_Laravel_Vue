@@ -291,106 +291,104 @@ const handleEdit = async () => {
 <template>
     <Head title="O‘qituvchilar" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="p-3 space-y-6">
-            <div class="p-4">
-                <!-- Search -->
-                <div class="w-full flex flex-col md:flex-row justify-between p-4 mx-auto px-4 md:px-6 lg:px-8">
-                    <div class="w-full md:w-1/4 relative">
-                        <Input
-                            ref="searchInput"
-                            v-model="searchQuery"
-                            type="search"
-                            placeholder="O‘qituvchi qidirish..."
-                            class="w-full rounded-lg px-4 py-3 text-gray-900 dark:text-gray-100
+        <div class="pt-7 space-y-6">
+            <!-- Search -->
+            <div class="w-full flex flex-col md:flex-row justify-between p-4 mx-auto px-4 md:px-6 lg:px-8">
+                <div class="w-full md:w-1/4 relative">
+                    <Input
+                        ref="searchInput"
+                        v-model="searchQuery"
+                        type="search"
+                        placeholder="O‘qituvchi qidirish..."
+                        class="w-full rounded-lg px-4 py-3 text-gray-900 dark:text-gray-100
                                    bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700
                                    shadow-sm focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600
                                    focus:outline-none transition-all"
-                        />
-                        <div v-if="isSearching" class="absolute right-2 top-3 text-gray-500"></div>
-                    </div>
-                    <div class="w-full md:w-auto flex justify-start md:justify-end">
-                        <Button
-                            variant="secondary"
-                            @click="openAddModal"
-                            class="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-lg
+                    />
+                    <div v-if="isSearching" class="absolute right-2 top-3 text-gray-500"></div>
+                </div>
+                <div class="w-full md:w-auto flex justify-start md:justify-end">
+                    <Button
+                        variant="secondary"
+                        @click="openAddModal"
+                        class="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-lg
                                    text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700 shadow-sm
                                    hover:bg-gray-100 dark:hover:bg-neutral-900 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
-                        >
-                            Yangi O‘qituvchi
-                        </Button>
-                    </div>
+                    >
+                        Yangi O‘qituvchi
+                    </Button>
+                </div>
+            </div>
+
+            <!-- Table or Empty State -->
+            <div v-if="teachers.length > 0" class="mx-auto px-4 md:px-6 lg:px-8">
+                <div class="rounded-2xl overflow-hidden border border-gray-300 dark:border-gray-700">
+                    <Table class="w-full">
+                        <TableHeader>
+                            <TableRow class="bg-gray-50 dark:bg-neutral-900 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                <TableHead class="px-4 py-3">ID</TableHead>
+                                <TableHead class="px-4 py-3">Ism</TableHead>
+                                <TableHead class="px-4 py-3">Telefon</TableHead>
+                                <TableHead class="px-4 py-3">Create at</TableHead>
+                                <TableHead class="px-4 py-3 text-center">Amallar</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            <TableRow
+                                v-for="teacher in teachers"
+                                :key="teacher.id"
+                                class="hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors"
+                            >
+                                <TableCell class="px-4 py-3">{{ teacher.id }}</TableCell>
+                                <TableCell class="px-4 py-3">{{ teacher.full_name }}</TableCell>
+                                <TableCell class="px-4 py-3">{{ teacher.phone }}</TableCell>
+                                <TableCell class="px-4 py-3">{{ teacher.created_at_formatted  }}</TableCell>
+                                <TableCell class="px-4 py-3 text-center">
+                                    <div class="flex items-center justify-center gap-3">
+                                        <button @click="openEditModal(teacher)">
+                                            <PencilSquareIcon class="w-5 h-5" />
+                                        </button>
+                                        <button @click="openDeleteModal(teacher.id)">
+                                            <TrashIcon class="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        </TableBody>
+                    </Table>
                 </div>
 
-                <!-- Table or Empty State -->
-                <div v-if="teachers.length > 0" class="mx-auto px-4 md:px-6 lg:px-8">
-                    <div class="rounded-2xl overflow-hidden border border-gray-300 dark:border-gray-700">
-                        <Table class="w-full">
-                            <TableHeader>
-                                <TableRow class="bg-gray-50 dark:bg-neutral-900 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                    <TableHead class="px-4 py-3">ID</TableHead>
-                                    <TableHead class="px-4 py-3">Ism</TableHead>
-                                    <TableHead class="px-4 py-3">Telefon</TableHead>
-                                    <TableHead class="px-4 py-3">Create at</TableHead>
-                                    <TableHead class="px-4 py-3 text-center">Amallar</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                <TableRow
-                                    v-for="teacher in teachers"
-                                    :key="teacher.id"
-                                    class="hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors"
-                                >
-                                    <TableCell class="px-4 py-3">{{ teacher.id }}</TableCell>
-                                    <TableCell class="px-4 py-3">{{ teacher.full_name }}</TableCell>
-                                    <TableCell class="px-4 py-3">{{ teacher.phone }}</TableCell>
-                                    <TableCell class="px-4 py-3">{{ teacher.created_at_formatted  }}</TableCell>
-                                    <TableCell class="px-4 py-3 text-center">
-                                        <div class="flex items-center justify-center gap-3">
-                                            <button @click="openEditModal(teacher)">
-                                                <PencilSquareIcon class="w-5 h-5" />
-                                            </button>
-                                            <button @click="openDeleteModal(teacher.id)">
-                                                <TrashIcon class="w-5 h-5" />
-                                            </button>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
-                    </div>
-
-                    <!-- Pagination -->
-                    <div v-if="pagination.total > pagination.per_page" class="flex justify-end items-center gap-3 p-4">
-                        <Button
-                            class="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-lg
+                <!-- Pagination -->
+                <div v-if="pagination.total > pagination.per_page" class="flex justify-end items-center gap-3 p-4">
+                    <Button
+                        class="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-lg
                                    text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700 shadow-sm
                                    hover:bg-gray-100 dark:hover:bg-neutral-900 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
-                            variant="secondary"
-                            @click="goToPage(pagination.current_page - 1)"
-                            :disabled="pagination.current_page === 1"
-                        >
-                            Orqaga
-                        </Button>
-                        <div class="font-semibold text-gray-700 dark:text-gray-300">
-                            {{ pagination.current_page }} / {{ pagination.total_pages }}
-                        </div>
-                        <Button
-                            class="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-lg
+                        variant="secondary"
+                        @click="goToPage(pagination.current_page - 1)"
+                        :disabled="pagination.current_page === 1"
+                    >
+                        Orqaga
+                    </Button>
+                    <div class="font-semibold text-gray-700 dark:text-gray-300">
+                        {{ pagination.current_page }} / {{ pagination.total_pages }}
+                    </div>
+                    <Button
+                        class="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-lg
                                    text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700 shadow-sm
                                    hover:bg-gray-100 dark:hover:bg-neutral-900 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
-                            variant="secondary"
-                            @click="goToPage(pagination.current_page + 1)"
-                            :disabled="pagination.current_page === pagination.total_pages"
-                        >
-                            Keyingi
-                        </Button>
-                    </div>
+                        variant="secondary"
+                        @click="goToPage(pagination.current_page + 1)"
+                        :disabled="pagination.current_page === pagination.total_pages"
+                    >
+                        Keyingi
+                    </Button>
                 </div>
+            </div>
 
-                <!-- Empty State -->
-                <div v-else class="text-center text-gray-500 py-10 text-lg font-semibold">
-                    O‘qituvchilar topilmadi.
-                </div>
+            <!-- Empty State -->
+            <div v-else class="text-center text-gray-500 py-10 text-lg font-semibold">
+                O‘qituvchilar topilmadi.
             </div>
         </div>
 
