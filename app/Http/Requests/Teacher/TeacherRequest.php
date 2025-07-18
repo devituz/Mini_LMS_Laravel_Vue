@@ -20,7 +20,7 @@ class TeacherRequest extends FormRequest
             'phone' => [
                 'required',
                 'string',
-                'max:20',
+                'max:13',
                 'unique:teachers,phone' . ($teacherId ? ',' . $teacherId : ''),
             ],
             'password' => [

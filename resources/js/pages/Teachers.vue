@@ -228,7 +228,7 @@ const validateForm = (teacher: Partial<Teacher>) => {
     if (!teacher.phone) {
         errors.value.phone = ['Telefon raqam kiritilishi shart.'];
         isValid = false;
-    } else if (!/^\+?[1-9]\d{1,14}$/.test(teacher.phone)) {
+    } else if (!/^\+?[1-9]\d{1,13}$/.test(teacher.phone)) {
         errors.value.phone = ['Telefon raqam formati noto‘g‘ri.'];
         isValid = false;
     }
