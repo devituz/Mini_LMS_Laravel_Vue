@@ -1,4 +1,3 @@
-
 <script setup lang="ts">
 import { Head, Link, usePage, router } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
@@ -80,7 +79,7 @@ watch(
     (serverErrors) => {
         if (Object.keys(serverErrors).length > 0) {
             errors.value = { ...serverErrors }
-            toast.error(serverErrors.error || 'O‘qituvchi qo‘shilmadi.', {
+            toast.error(serverErrors.error || 'Xatolik yuz berdi.', {
                 timeout: 5000,
             })
         } else {
@@ -197,25 +196,22 @@ const closeAddModal = () => {
     errors.value = {} // Clear errors when closing modal
 }
 
-const validateForm = () => {
+const validateForm = (teacher: Partial<Teacher>) => {
     errors.value = {}
     let isValid = true
 
-    if (!newTeacher.value.full_name) {
+    if (!teacher.full_name) {
         errors.value.full_name = 'Ism va familiya kiritilishi shart.'
         isValid = false
     }
-    if (!newTeacher.value.phone) {
+    if (!teacher.phone) {
         errors.value.phone = 'Telefon raqam kiritilishi shart.'
         isValid = false
-    } else if (!/^\+?[1-9]\d{1,14}$/.test(newTeacher.value.phone)) {
+    } else if (!/^\+?[1-9]\d{1,14}$/.test(teacher.phone)) {
         errors.value.phone = 'Telefon raqam formati noto‘g‘ri.'
         isValid = false
     }
-    if (!newTeacher.value.password) {
-        errors.value.password = 'Parol kiritilishi shart.'
-        isValid = false
-    } else if (newTeacher.value.password.length < 6) {
+    if (teacher.password && teacher.password.length < 6) {
         errors.value.password = 'Parol kamida 6 belgidan iborat bo‘lishi kerak.'
         isValid = false
     }
@@ -230,7 +226,7 @@ const validateForm = () => {
 }
 
 const handleAdd = async () => {
-    if (!validateForm()) {
+    if (!validateForm(newTeacher.value)) {
         return // Keep dialog open if validation fails
     }
 
@@ -254,6 +250,58 @@ const handleAdd = async () => {
         })
     }
 }
+
+// Edit Modal
+const isEditModalOpen = ref(false)
+const editTeacher = ref<Partial<Teacher>>({
+    id: 0,
+    full_name: '',
+    phone: '',
+    password: '',
+})
+
+const openEditModal = (teacher: Teacher) => {
+    editTeacher.value = {
+        id: teacher.id,
+        full_name: teacher.full_name,
+        phone: teacher.phone,
+        password: '', // Password is empty by default for security
+    }
+    isEditModalOpen.value = true
+    errors.value = {} // Clear errors when opening modal
+}
+
+const closeEditModal = () => {
+    isEditModalOpen.value = false
+    editTeacher.value = { id: 0, full_name: '', phone: '', password: '' }
+    errors.value = {} // Clear errors when closing modal
+}
+
+const handleEdit = async () => {
+    if (!validateForm(editTeacher.value)) {
+        return // Keep dialog open if validation fails
+    }
+
+    try {
+        await router.put(route('teachers.update', editTeacher.value.id), editTeacher.value, {
+            onSuccess: () => {
+                closeEditModal() // Close dialog only on success
+                router.get(route('teachers.index'))
+            },
+            onError: (serverErrors) => {
+                errors.value = { ...serverErrors } // Update with server-side errors
+                toast.error('Server xatosi: Ma’lumotlarni yangilab bo‘lmadi.', {
+                    timeout: 5000,
+                })
+            },
+        })
+    } catch (error) {
+        console.error('Xato:', error)
+        toast.error('Tizim xatosi yuz berdi.', {
+            timeout: 5000,
+        })
+    }
+}
 </script>
 
 <template>
@@ -261,7 +309,6 @@ const handleAdd = async () => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="p-3 space-y-6">
             <div class="p-4">
-                <div class="dark:bg-neutral-950 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden">
                     <!-- Search -->
                     <div class="w-full flex flex-col md:flex-row justify-between p-4 mx-auto px-4 md:px-6 lg:px-8">
                         <div class="w-full md:w-1/4">
@@ -312,9 +359,9 @@ const handleAdd = async () => {
                                         <TableCell class="px-4 py-3">{{ teacher.phone }}</TableCell>
                                         <TableCell class="px-4 py-3 text-center">
                                             <div class="flex items-center justify-center gap-3">
-                                                <Link :href="route('teachers.edit', teacher.id)">
+                                                <button @click="openEditModal(teacher)">
                                                     <PencilSquareIcon class="w-5 h-5" />
-                                                </Link>
+                                                </button>
                                                 <button @click="openDeleteModal(teacher.id)">
                                                     <TrashIcon class="w-5 h-5" />
                                                 </button>
@@ -357,7 +404,6 @@ const handleAdd = async () => {
                     <div v-else class="text-center text-gray-500 py-10 text-lg font-semibold">
                         O‘qituvchilar topilmadi.
                     </div>
-                </div>
             </div>
         </div>
 
@@ -377,8 +423,8 @@ const handleAdd = async () => {
                         type="button"
                         @click="closeDeleteModal"
                         class="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg
-               text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700 shadow-sm
-               hover:bg-gray-100 dark:hover:bg-neutral-900 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
+                               text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700 shadow-sm
+                               hover:bg-gray-100 dark:hover:bg-neutral-900 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
                     >
                         Bekor qilish
                     </button>
@@ -386,13 +432,12 @@ const handleAdd = async () => {
                         type="button"
                         @click="handleDelete"
                         class="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg
-               text-white bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 border border-red-600 dark:border-red-700 shadow-sm
-               focus:ring-2 focus:ring-red-500 focus:outline-none transition-all"
+                               text-white bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 border border-red-600 dark:border-red-700 shadow-sm
+                               focus:ring-2 focus:ring-red-500 focus:outline-none transition-all"
                     >
                         O‘chirish
                     </button>
                 </AlertDialogFooter>
-
             </AlertDialogContent>
         </AlertDialog>
 
@@ -452,8 +497,8 @@ const handleAdd = async () => {
                         type="button"
                         @click="closeAddModal"
                         class="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg
-               text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700 shadow-sm
-               hover:bg-gray-100 dark:hover:bg-neutral-900 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
+                               text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700 shadow-sm
+                               hover:bg-gray-100 dark:hover:bg-neutral-900 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
                     >
                         Bekor qilish
                     </button>
@@ -461,13 +506,86 @@ const handleAdd = async () => {
                         type="button"
                         @click="handleAdd"
                         class="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg
-               text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700 shadow-sm
-               hover:bg-gray-100 dark:hover:bg-neutral-900 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
+                               text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700 shadow-sm
+                               hover:bg-gray-100 dark:hover:bg-neutral-900 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
                     >
                         Qo‘shish
                     </button>
                 </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
 
+        <!-- Edit Teacher AlertDialog -->
+        <AlertDialog v-model:open="isEditModalOpen">
+            <AlertDialogContent class="w-full max-w-2xl p-8 space-y-6">
+                <AlertDialogHeader>
+                    <AlertDialogTitle class="text-xl font-bold text-gray-900 dark:text-gray-100">
+                        O‘qituvchi Ma’lumotlarini Tahrirlash
+                    </AlertDialogTitle>
+                    <AlertDialogDescription class="text-gray-600 dark:text-gray-300">
+                        O‘qituvchi ma’lumotlarini yangilang.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="space-y-6">
+                        <div>
+                            <Input
+                                v-model="editTeacher.full_name"
+                                placeholder="Ism va familiya"
+                                class="w-full rounded-lg px-5 py-4 text-lg text-gray-900 dark:text-gray-100
+                                       bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700
+                                       shadow-sm focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
+                                :class="{ 'border-red-500': errors.full_name }"
+                            />
+                            <p v-if="errors.full_name" class="text-red-500 text-sm mt-1">{{ errors.full_name }}</p>
+                        </div>
+                        <div>
+                            <Input
+                                v-model="editTeacher.password"
+                                type="password"
+                                placeholder="Yangi parol (agar o‘zgartirish kerak bo‘lsa)"
+                                class="w-full rounded-lg px-5 py-4 text-lg text-gray-900 dark:text-gray-100
+                                       bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700
+                                       shadow-sm focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
+                                :class="{ 'border-red-500': errors.password }"
+                            />
+                            <p v-if="errors.password" class="text-red-500 text-sm mt-1">{{ errors.password }}</p>
+                        </div>
+                    </div>
+                    <div class="space-y-6">
+                        <div>
+                            <Input
+                                v-model="editTeacher.phone"
+                                placeholder="Telefon raqam"
+                                class="w-full rounded-lg px-5 py-4 text-lg text-gray-900 dark:text-gray-100
+                                       bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700
+                                       shadow-sm focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
+                                :class="{ 'border-red-500': errors.phone }"
+                            />
+                            <p v-if="errors.phone" class="text-red-500 text-sm mt-1">{{ errors.phone }}</p>
+                        </div>
+                    </div>
+                </div>
+                <AlertDialogFooter class="flex justify-end gap-4">
+                    <button
+                        type="button"
+                        @click="closeEditModal"
+                        class="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg
+                               text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700 shadow-sm
+                               hover:bg-gray-100 dark:hover:bg-neutral-900 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
+                    >
+                        Bekor qilish
+                    </button>
+                    <button
+                        type="button"
+                        @click="handleEdit"
+                        class="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg
+                               text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700 shadow-sm
+                               hover:bg-gray-100 dark:hover:bg-neutral-900 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
+                    >
+                        Yangilash
+                    </button>
+                </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
     </AppLayout>

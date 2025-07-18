@@ -13,17 +13,26 @@ class TeacherController extends Controller
     /**
      * Display a listing of the resource.
      */
-
-
     public function index(Request $request)
     {
         $page = $request->query('page', 1);
         $perPage = 5;
+        $search = $request->query('search', '');
 
-        $teachers = Teacher::query()
-            ->latest()
+        // Start with a query for all Teacher records
+        $query = Teacher::query();
+
+        // Apply search filters across all records if a search term is provided
+        if ($search) {
+            $query->where('full_name', 'like', '%' . $search . '%')
+                ->orWhere('phone', 'like', '%' . $search . '%');
+        }
+
+        // Paginate the filtered results (search is applied to all records before pagination)
+        $teachers = $query->latest()
             ->paginate($perPage, ['*'], 'page', $page);
 
+        // Return the Inertia response with teachers, pagination, and search term
         return inertia('Teachers', [
             'teachers' => $teachers->items(),
             'pagination' => [
@@ -32,17 +41,16 @@ class TeacherController extends Controller
                 'total' => $teachers->total(),
                 'per_page' => $teachers->perPage(),
             ],
+            'search' => $search,
         ]);
     }
-
-
 
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
-        //
+        return inertia('Teachers');
     }
 
     /**
@@ -52,7 +60,7 @@ class TeacherController extends Controller
     {
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
-            'phone' => 'required|string|max:20',
+            'phone' => 'required|string|max:20|unique:teachers,phone',
             'password' => 'required|string|min:6',
         ]);
 
@@ -82,7 +90,26 @@ class TeacherController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $teacher = Teacher::find($id);
+
+        if (!$teacher) {
+            return redirect()->route('teachers.index')->withErrors(['error' => 'O‘qituvchi topilmadi.']);
+        }
+
+        return inertia('Teachers', [
+            'teachers' => Teacher::latest()->paginate(5)->items(),
+            'pagination' => [
+                'current_page' => 1,
+                'total_pages' => 1,
+                'total' => Teacher::count(),
+                'per_page' => 5,
+            ],
+            'editTeacher' => [
+                'id' => $teacher->id,
+                'full_name' => $teacher->full_name,
+                'phone' => $teacher->phone,
+            ],
+        ]);
     }
 
     /**
@@ -90,7 +117,30 @@ class TeacherController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $teacher = Teacher::find($id);
+
+        if (!$teacher) {
+            return redirect()->route('teachers.index')->withErrors(['error' => 'O‘qituvchi topilmadi.']);
+        }
+
+        $validated = $request->validate([
+            'full_name' => 'required|string|max:255',
+            'phone' => 'required|string|max:20|unique:teachers,phone,' . $id,
+            'password' => 'nullable|string|min:6',
+        ]);
+
+        try {
+            $teacher->full_name = $validated['full_name'];
+            $teacher->phone = $validated['phone'];
+            if (!empty($validated['password'])) {
+                $teacher->password = Hash::make($validated['password']);
+            }
+            $teacher->save();
+
+            return redirect()->route('teachers.index')->with('success', 'O‘qituvchi muvaffaqiyatli yangilandi.');
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'O‘qituvchini yangilashda xatolik: ' . $e->getMessage()]);
+        }
     }
 
     /**
@@ -111,5 +161,4 @@ class TeacherController extends Controller
             return redirect()->back()->withErrors(['error' => 'O‘qituvchini o‘chirishda xatolik: ' . $e->getMessage()]);
         }
     }
-
 }
