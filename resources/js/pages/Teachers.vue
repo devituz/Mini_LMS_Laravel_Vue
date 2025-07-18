@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, usePage, router } from '@inertiajs/vue3';
+import { PageProps } from '@inertiajs/core'; // Import PageProps from @inertiajs/core
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
@@ -18,6 +19,7 @@ import { debounce } from 'lodash';
 import { useToast } from 'vue-toastification';
 import type { BreadcrumbItem } from '@/types';
 
+// Define interfaces
 interface Teacher {
     id: number;
     full_name: string;
@@ -32,17 +34,28 @@ interface Pagination {
     per_page: number;
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'O‘qituvchilar', href: '/teachers' },
-];
-
-const { props } = usePage<{
+// Extend Inertia's PageProps to include custom properties
+interface CustomPageProps extends PageProps {
     teachers: Teacher[];
     pagination: Pagination;
     search: string;
     flash: { success?: string };
-    errors: Record<string, string>;
-}>();
+    errors: Record<string, string[]>;
+    name?: string;
+    quote?: string;
+    auth?: any; // Replace with specific auth type if known
+    ziggy?: any; // Replace with Ziggy type if using Ziggy
+    sidebarOpen?: boolean;
+}
+
+// Use type assertion instead of generic
+const page = usePage();
+const props = page.props as CustomPageProps;
+
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'O‘qituvchilar', href: '/teachers' },
+];
+
 const teachers = ref<Teacher[]>(props.teachers || []);
 const pagination = ref<Pagination>(props.pagination || {
     current_page: 1,
@@ -56,11 +69,13 @@ const isSearching = ref(false);
 // Reference to the search input element
 const searchInput = ref<HTMLElement | null>(null);
 
-// Client-side validation errors
-const errors = ref<Partial<Record<'full_name' | 'phone' | 'password', string>>>({});
+// Client-side validation errors (updated to string[] for Inertia.js compatibility)
+const errors = ref<Record<string, string[]>>({});
 
-// Handle flash messages and errors
-const { toast } = useToast();
+// Use toast correctly
+const toast = useToast();
+
+// Handle flash messages
 watch(
     () => props.flash,
     (flash) => {
@@ -76,8 +91,8 @@ watch(
     () => props.errors,
     (serverErrors) => {
         if (Object.keys(serverErrors).length > 0) {
-            errors.value = { ...serverErrors };
-            toast.error(serverErrors.error || 'Xatolik yuz berdi.', { timeout: 5000 });
+            errors.value = serverErrors;
+            toast.error(serverErrors.error?.[0] || 'Xatolik yuz berdi.', { timeout: 5000 });
         } else {
             errors.value = {};
         }
@@ -89,7 +104,7 @@ watch(
 watch(
     () => props,
     (newProps) => {
-        console.log('Props updated:', newProps); // Debug log
+        console.log('Props updated:', newProps);
         teachers.value = newProps.teachers || [];
         pagination.value = newProps.pagination || {
             current_page: 1,
@@ -207,18 +222,18 @@ const validateForm = (teacher: Partial<Teacher>) => {
     let isValid = true;
 
     if (!teacher.full_name) {
-        errors.value.full_name = 'Ism va familiya kiritilishi shart.';
+        errors.value.full_name = ['Ism va familiya kiritilishi shart.'];
         isValid = false;
     }
     if (!teacher.phone) {
-        errors.value.phone = 'Telefon raqam kiritilishi shart.';
+        errors.value.phone = ['Telefon raqam kiritilishi shart.'];
         isValid = false;
     } else if (!/^\+?[1-9]\d{1,14}$/.test(teacher.phone)) {
-        errors.value.phone = 'Telefon raqam formati noto‘g‘ri.';
+        errors.value.phone = ['Telefon raqam formati noto‘g‘ri.'];
         isValid = false;
     }
     if (teacher.password && teacher.password.length < 6) {
-        errors.value.password = 'Parol kamida 6 belgidan iborat bo‘lishi kerak.';
+        errors.value.password = ['Parol kamida 6 belgidan iborat bo‘lishi kerak.'];
         isValid = false;
     }
 
@@ -235,13 +250,13 @@ const handleAdd = async () => {
     }
 
     try {
-        await router.post(route('teachers.store'), newTeacher.value, {
+        await router.post(route('teachers.store'), newTeacher.value as Record<string, any>, {
             onSuccess: () => {
                 closeAddModal();
                 router.get(route('teachers.index'));
             },
             onError: (serverErrors) => {
-                errors.value = { ...serverErrors };
+                errors.value = serverErrors;
                 toast.error('Server xatosi: Ma’lumotlarni qo‘shib bo‘lmadi.', { timeout: 5000 });
             },
         });
@@ -283,13 +298,13 @@ const handleEdit = async () => {
     }
 
     try {
-        await router.put(route('teachers.update', editTeacher.value.id), editTeacher.value, {
+        await router.put(route('teachers.update', editTeacher.value.id), editTeacher.value as Record<string, any>, {
             onSuccess: () => {
                 closeEditModal();
                 router.get(route('teachers.index'));
             },
             onError: (serverErrors) => {
-                errors.value = { ...serverErrors };
+                errors.value = serverErrors;
                 toast.error('Server xatosi: Ma’lumotlarni yangilab bo‘lmadi.', { timeout: 5000 });
             },
         });
@@ -458,9 +473,9 @@ const handleEdit = async () => {
                                 class="w-full rounded-lg px-5 py-4 text-lg text-gray-900 dark:text-gray-100
                                        bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700
                                        shadow-sm focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
-                                :class="{ 'border-red-500': errors.full_name }"
+                                :class="{ 'border-red-500': errors.full_name?.length }"
                             />
-                            <p v-if="errors.full_name" class="text-red-500 text-sm mt-1">{{ errors.full_name }}</p>
+                            <p v-if="errors.full_name?.length" class="text-red-500 text-sm mt-1">{{ errors.full_name[0] }}</p>
                         </div>
                         <div>
                             <Input
@@ -470,9 +485,9 @@ const handleEdit = async () => {
                                 class="w-full rounded-lg px-5 py-4 text-lg text-gray-900 dark:text-gray-100
                                        bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700
                                        shadow-sm focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
-                                :class="{ 'border-red-500': errors.password }"
+                                :class="{ 'border-red-500': errors.password?.length }"
                             />
-                            <p v-if="errors.password" class="text-red-500 text-sm mt-1">{{ errors.password }}</p>
+                            <p v-if="errors.password?.length" class="text-red-500 text-sm mt-1">{{ errors.password[0] }}</p>
                         </div>
                     </div>
                     <div class="space-y-6">
@@ -483,9 +498,9 @@ const handleEdit = async () => {
                                 class="w-full rounded-lg px-5 py-4 text-lg text-gray-900 dark:text-gray-100
                                        bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700
                                        shadow-sm focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
-                                :class="{ 'border-red-500': errors.phone }"
+                                :class="{ 'border-red-500': errors.phone?.length }"
                             />
-                            <p v-if="errors.phone" class="text-red-500 text-sm mt-1">{{ errors.phone }}</p>
+                            <p v-if="errors.phone?.length" class="text-red-500 text-sm mt-1">{{ errors.phone[0] }}</p>
                         </div>
                     </div>
                 </div>
@@ -532,9 +547,9 @@ const handleEdit = async () => {
                                 class="w-full rounded-lg px-5 py-4 text-lg text-gray-900 dark:text-gray-100
                                        bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700
                                        shadow-sm focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
-                                :class="{ 'border-red-500': errors.full_name }"
+                                :class="{ 'border-red-500': errors.full_name?.length }"
                             />
-                            <p v-if="errors.full_name" class="text-red-500 text-sm mt-1">{{ errors.full_name }}</p>
+                            <p v-if="errors.full_name?.length" class="text-red-500 text-sm mt-1">{{ errors.full_name[0] }}</p>
                         </div>
                         <div>
                             <Input
@@ -544,9 +559,9 @@ const handleEdit = async () => {
                                 class="w-full rounded-lg px-5 py-4 text-lg text-gray-900 dark:text-gray-100
                                        bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700
                                        shadow-sm focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
-                                :class="{ 'border-red-500': errors.password }"
+                                :class="{ 'border-red-500': errors.password?.length }"
                             />
-                            <p v-if="errors.password" class="text-red-500 text-sm mt-1">{{ errors.password }}</p>
+                            <p v-if="errors.password?.length" class="text-red-500 text-sm mt-1">{{ errors.password[0] }}</p>
                         </div>
                     </div>
                     <div class="space-y-6">
@@ -557,9 +572,9 @@ const handleEdit = async () => {
                                 class="w-full rounded-lg px-5 py-4 text-lg text-gray-900 dark:text-gray-100
                                        bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700
                                        shadow-sm focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
-                                :class="{ 'border-red-500': errors.phone }"
+                                :class="{ 'border-red-500': errors.phone?.length }"
                             />
-                            <p v-if="errors.phone" class="text-red-500 text-sm mt-1">{{ errors.phone }}</p>
+                            <p v-if="errors.phone?.length" class="text-red-500 text-sm mt-1">{{ errors.phone[0] }}</p>
                         </div>
                     </div>
                 </div>

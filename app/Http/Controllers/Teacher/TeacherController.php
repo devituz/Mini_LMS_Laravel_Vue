@@ -53,10 +53,10 @@ class TeacherController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
-    {
-        return inertia('Teachers');
-    }
+//    public function create()
+//    {
+//        return inertia('Teachers');
+//    }
 
     /**
      * Store a newly created resource in storage.
@@ -95,26 +95,7 @@ class TeacherController extends Controller
      */
     public function edit(string $id)
     {
-        $teacher = Teacher::find($id);
 
-        if (!$teacher) {
-            return redirect()->route('teachers.index')->withErrors(['error' => 'O‘qituvchi topilmadi.']);
-        }
-
-        return inertia('Teachers', [
-            'teachers' => Teacher::latest()->paginate(5)->items(),
-            'pagination' => [
-                'current_page' => 1,
-                'total_pages' => 1,
-                'total' => Teacher::count(),
-                'per_page' => 5,
-            ],
-            'editTeacher' => [
-                'id' => $teacher->id,
-                'full_name' => $teacher->full_name,
-                'phone' => $teacher->phone,
-            ],
-        ]);
     }
 
     /**
