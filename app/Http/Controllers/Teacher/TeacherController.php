@@ -24,16 +24,21 @@ class TeacherController extends Controller
 
         // Apply search filters across all records if a search term is provided
         if ($search) {
-            $query->where('full_name', 'like', '%' . $search . '%')
-                ->orWhere('phone', 'like', '%' . $search . '%');
+            $query->where(function ($q) use ($search) {
+                $q->whereRaw('LOWER(full_name) LIKE ?', ['%' . strtolower($search) . '%'])
+                    ->orWhereRaw('LOWER(phone) LIKE ?', ['%' . strtolower($search) . '%']);
+            });
         }
 
-        // Paginate the filtered results (search is applied to all records before pagination)
+        // Paginate the filtered results
         $teachers = $query->latest()
             ->paginate($perPage, ['*'], 'page', $page);
 
+        // Log the results for debugging
+        \Log::info('Teachers fetched:', $teachers->toArray());
+
         // Return the Inertia response with teachers, pagination, and search term
-        return inertia('Teachers', [
+        return Inertia::render('Teachers', [
             'teachers' => $teachers->items(),
             'pagination' => [
                 'current_page' => $teachers->currentPage(),

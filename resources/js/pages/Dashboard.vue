@@ -46,7 +46,7 @@ const stats = [
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="p-6 space-y-6 ">
             <!-- Statistics Cards -->
-            <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 ">
+            <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-2 xl:grid-cols-5 ">
                 <Card v-for="(item, index) in stats" :key="index" class="border-gray-300 dark:border-gray-700
                         shadow-sm focus:ring-2">
                     <CardHeader class="flex flex-row items-center gap-4 ">

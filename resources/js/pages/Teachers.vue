@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { Head, Link, usePage, router } from '@inertiajs/vue3'
-import AppLayout from '@/layouts/AppLayout.vue'
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
-import { Input } from '@/components/ui/input'
-import { ref, watch, nextTick } from 'vue'
-import { Button } from '@/components/ui/button'
-import { PencilSquareIcon, TrashIcon } from '@heroicons/vue/24/outline'
+import { Head, usePage, router } from '@inertiajs/vue3';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+import { ref, watch, nextTick } from 'vue';
+import { Button } from '@/components/ui/button';
+import { PencilSquareIcon, TrashIcon } from '@heroicons/vue/24/outline';
 import {
     AlertDialog,
     AlertDialogContent,
@@ -13,123 +13,126 @@ import {
     AlertDialogTitle,
     AlertDialogDescription,
     AlertDialogFooter,
-    AlertDialogCancel,
-} from '@/components/ui/alert-dialog'
-import { debounce } from 'lodash'
-import { useToast } from 'vue-toastification'
-import type { BreadcrumbItem } from '@/types'
+} from '@/components/ui/alert-dialog';
+import { debounce } from 'lodash';
+import { useToast } from 'vue-toastification';
+import type { BreadcrumbItem } from '@/types';
 
 interface Teacher {
-    id: number
-    full_name: string
-    phone: string
-    password: string
+    id: number;
+    full_name: string;
+    phone: string;
+    password: string;
 }
 
 interface Pagination {
-    current_page: number
-    total_pages: number
-    total: number
-    per_page: number
+    current_page: number;
+    total_pages: number;
+    total: number;
+    per_page: number;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'O‘qituvchilar', href: '/teachers' },
-]
+];
 
 const { props } = usePage<{
-    teachers: Teacher[]
-    pagination: Pagination
-    search: string
-    flash: { success?: string }
-    errors: Record<string, string>
-}>()
-const teachers = ref<Teacher[]>(props.teachers || [])
+    teachers: Teacher[];
+    pagination: Pagination;
+    search: string;
+    flash: { success?: string };
+    errors: Record<string, string>;
+}>();
+const teachers = ref<Teacher[]>(props.teachers || []);
 const pagination = ref<Pagination>(props.pagination || {
     current_page: 1,
     total_pages: 1,
     total: 0,
     per_page: 5,
-})
-const searchQuery = ref(props.search || '')
+});
+const searchQuery = ref(props.search || '');
+const isSearching = ref(false);
 
 // Reference to the search input element
-const searchInput = ref<HTMLElement | null>(null)
+const searchInput = ref<HTMLElement | null>(null);
 
 // Client-side validation errors
-const errors = ref<Partial<Record<'full_name' | 'phone' | 'password', string>>>({})
+const errors = ref<Partial<Record<'full_name' | 'phone' | 'password', string>>>({});
 
 // Handle flash messages and errors
-const { toast } = useToast()
+const { toast } = useToast();
 watch(
     () => props.flash,
     (flash) => {
         if (flash.success) {
-            toast.success(flash.success, {
-                timeout: 5000,
-            })
+            toast.success(flash.success, { timeout: 5000 });
         }
     },
     { deep: true }
-)
+);
 
 // Watch for server-side errors
 watch(
     () => props.errors,
     (serverErrors) => {
         if (Object.keys(serverErrors).length > 0) {
-            errors.value = { ...serverErrors }
-            toast.error(serverErrors.error || 'Xatolik yuz berdi.', {
-                timeout: 5000,
-            })
+            errors.value = { ...serverErrors };
+            toast.error(serverErrors.error || 'Xatolik yuz berdi.', { timeout: 5000 });
         } else {
-            errors.value = {}
+            errors.value = {};
         }
     },
     { deep: true }
-)
+);
 
 // Watch for prop changes
 watch(
     () => props,
     (newProps) => {
-        teachers.value = newProps.teachers || []
+        console.log('Props updated:', newProps); // Debug log
+        teachers.value = newProps.teachers || [];
         pagination.value = newProps.pagination || {
             current_page: 1,
             total_pages: 1,
             total: 0,
             per_page: 5,
-        }
-        searchQuery.value = newProps.search || ''
+        };
+        searchQuery.value = newProps.search || '';
     },
     { deep: true }
-)
+);
 
 // Debounced server-side search
 const debouncedSearch = debounce(() => {
+    isSearching.value = true;
     router.get(
         route('teachers.index'),
         { search: searchQuery.value, page: 1 },
         {
-            preserveState: true,
+            preserveState: false,
             preserveScroll: true,
             onSuccess: () => {
+                isSearching.value = false;
                 nextTick(() => {
                     if (searchInput.value) {
-                        searchInput.value.focus()
+                        searchInput.value.focus();
                     }
-                })
+                });
+            },
+            onError: () => {
+                isSearching.value = false;
+                toast.error('Qidiruvda xato yuz berdi.', { timeout: 5000 });
             },
         }
-    )
-}, 500)
+    );
+}, 300);
 
 // Update server data on search
 watch(searchQuery, (newValue, oldValue) => {
     if (newValue !== oldValue) {
-        debouncedSearch()
+        debouncedSearch();
     }
-})
+});
 
 // Page navigation
 const goToPage = (page: number) => {
@@ -143,165 +146,158 @@ const goToPage = (page: number) => {
                 onSuccess: () => {
                     nextTick(() => {
                         if (searchInput.value) {
-                            searchInput.value.focus()
+                            searchInput.value.focus();
                         }
-                    })
+                    });
                 },
             }
-        )
+        );
     }
-}
+};
 
 // Delete Modal
-const isDeleteModalOpen = ref(false)
-const deleteTeacherId = ref<number | null>(null)
+const isDeleteModalOpen = ref(false);
+const deleteTeacherId = ref<number | null>(null);
 
 const openDeleteModal = (id: number) => {
-    deleteTeacherId.value = id
-    isDeleteModalOpen.value = true
-}
+    deleteTeacherId.value = id;
+    isDeleteModalOpen.value = true;
+};
 
 const closeDeleteModal = () => {
-    isDeleteModalOpen.value = false
-    deleteTeacherId.value = null
-}
+    isDeleteModalOpen.value = false;
+    deleteTeacherId.value = null;
+};
 
 const handleDelete = () => {
     if (deleteTeacherId.value !== null) {
         router.delete(route('teachers.destroy', deleteTeacherId.value), {
             onSuccess: () => {
-                closeDeleteModal()
-                router.get(route('teachers.index'))
+                closeDeleteModal();
+                router.get(route('teachers.index'));
             },
-        })
+            onError: () => {
+                toast.error('O‘chirishda xato yuz berdi.', { timeout: 5000 });
+            },
+        });
     }
-}
+};
 
 // Add Modal
-const isAddModalOpen = ref(false)
+const isAddModalOpen = ref(false);
 const newTeacher = ref<Partial<Teacher>>({
     full_name: '',
     phone: '',
     password: '',
-})
+});
 
 const openAddModal = () => {
-    isAddModalOpen.value = true
-    errors.value = {} // Clear errors when opening modal
-}
+    isAddModalOpen.value = true;
+    errors.value = {};
+};
 
 const closeAddModal = () => {
-    isAddModalOpen.value = false
-    newTeacher.value = { full_name: '', phone: '', password: '' }
-    errors.value = {} // Clear errors when closing modal
-}
+    isAddModalOpen.value = false;
+    newTeacher.value = { full_name: '', phone: '', password: '' };
+    errors.value = {};
+};
 
 const validateForm = (teacher: Partial<Teacher>) => {
-    errors.value = {}
-    let isValid = true
+    errors.value = {};
+    let isValid = true;
 
     if (!teacher.full_name) {
-        errors.value.full_name = 'Ism va familiya kiritilishi shart.'
-        isValid = false
+        errors.value.full_name = 'Ism va familiya kiritilishi shart.';
+        isValid = false;
     }
     if (!teacher.phone) {
-        errors.value.phone = 'Telefon raqam kiritilishi shart.'
-        isValid = false
+        errors.value.phone = 'Telefon raqam kiritilishi shart.';
+        isValid = false;
     } else if (!/^\+?[1-9]\d{1,14}$/.test(teacher.phone)) {
-        errors.value.phone = 'Telefon raqam formati noto‘g‘ri.'
-        isValid = false
+        errors.value.phone = 'Telefon raqam formati noto‘g‘ri.';
+        isValid = false;
     }
     if (teacher.password && teacher.password.length < 6) {
-        errors.value.password = 'Parol kamida 6 belgidan iborat bo‘lishi kerak.'
-        isValid = false
+        errors.value.password = 'Parol kamida 6 belgidan iborat bo‘lishi kerak.';
+        isValid = false;
     }
 
     if (!isValid) {
-        toast.error('Iltimos, barcha maydonlarni to‘g‘ri to‘ldiring.', {
-            timeout: 5000,
-        })
+        toast.error('Iltimos, barcha maydonlarni to‘g‘ri to‘ldiring.', { timeout: 5000 });
     }
 
-    return isValid
-}
+    return isValid;
+};
 
 const handleAdd = async () => {
     if (!validateForm(newTeacher.value)) {
-        return // Keep dialog open if validation fails
+        return;
     }
 
     try {
         await router.post(route('teachers.store'), newTeacher.value, {
             onSuccess: () => {
-                closeAddModal() // Close dialog only on success
-                router.get(route('teachers.index'))
+                closeAddModal();
+                router.get(route('teachers.index'));
             },
             onError: (serverErrors) => {
-                errors.value = { ...serverErrors } // Update with server-side errors
-                toast.error('Server xatosi: Ma’lumotlarni qo‘shib bo‘lmadi.', {
-                    timeout: 5000,
-                })
+                errors.value = { ...serverErrors };
+                toast.error('Server xatosi: Ma’lumotlarni qo‘shib bo‘lmadi.', { timeout: 5000 });
             },
-        })
+        });
     } catch (error) {
-        console.error('Xato:', error)
-        toast.error('Tizim xatosi yuz berdi.', {
-            timeout: 5000,
-        })
+        console.error('Xato:', error);
+        toast.error('Tizim xatosi yuz berdi.', { timeout: 5000 });
     }
-}
+};
 
 // Edit Modal
-const isEditModalOpen = ref(false)
+const isEditModalOpen = ref(false);
 const editTeacher = ref<Partial<Teacher>>({
     id: 0,
     full_name: '',
     phone: '',
     password: '',
-})
+});
 
 const openEditModal = (teacher: Teacher) => {
     editTeacher.value = {
         id: teacher.id,
         full_name: teacher.full_name,
         phone: teacher.phone,
-        password: '', // Password is empty by default for security
-    }
-    isEditModalOpen.value = true
-    errors.value = {} // Clear errors when opening modal
-}
+        password: '',
+    };
+    isEditModalOpen.value = true;
+    errors.value = {};
+};
 
 const closeEditModal = () => {
-    isEditModalOpen.value = false
-    editTeacher.value = { id: 0, full_name: '', phone: '', password: '' }
-    errors.value = {} // Clear errors when closing modal
-}
+    isEditModalOpen.value = false;
+    editTeacher.value = { id: 0, full_name: '', phone: '', password: '' };
+    errors.value = {};
+};
 
 const handleEdit = async () => {
     if (!validateForm(editTeacher.value)) {
-        return // Keep dialog open if validation fails
+        return;
     }
 
     try {
         await router.put(route('teachers.update', editTeacher.value.id), editTeacher.value, {
             onSuccess: () => {
-                closeEditModal() // Close dialog only on success
-                router.get(route('teachers.index'))
+                closeEditModal();
+                router.get(route('teachers.index'));
             },
             onError: (serverErrors) => {
-                errors.value = { ...serverErrors } // Update with server-side errors
-                toast.error('Server xatosi: Ma’lumotlarni yangilab bo‘lmadi.', {
-                    timeout: 5000,
-                })
+                errors.value = { ...serverErrors };
+                toast.error('Server xatosi: Ma’lumotlarni yangilab bo‘lmadi.', { timeout: 5000 });
             },
-        })
+        });
     } catch (error) {
-        console.error('Xato:', error)
-        toast.error('Tizim xatosi yuz berdi.', {
-            timeout: 5000,
-        })
+        console.error('Xato:', error);
+        toast.error('Tizim xatosi yuz berdi.', { timeout: 5000 });
     }
-}
+};
 </script>
 
 <template>
@@ -309,101 +305,102 @@ const handleEdit = async () => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="p-3 space-y-6">
             <div class="p-4">
-                    <!-- Search -->
-                    <div class="w-full flex flex-col md:flex-row justify-between p-4 mx-auto px-4 md:px-6 lg:px-8">
-                        <div class="w-full md:w-1/4">
-                            <Input
-                                ref="searchInput"
-                                v-model="searchQuery"
-                                type="search"
-                                placeholder="O‘qituvchi qidirish..."
-                                class="w-full rounded-lg px-4 py-3 text-gray-900 dark:text-gray-100
-                                       bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700
-                                       shadow-sm focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600
-                                       focus:outline-none transition-all"
-                            />
-                        </div>
-                        <div class="w-full md:w-auto flex justify-start md:justify-end">
-                            <Button
-                                variant="secondary"
-                                @click="openAddModal"
-                                class="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-lg
-                                       text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700 shadow-sm
-                                       hover:bg-gray-100 dark:hover:bg-neutral-900 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
-                            >
-                                Yangi O‘qituvchi
-                            </Button>
-                        </div>
+                <!-- Search -->
+                <div class="w-full flex flex-col md:flex-row justify-between p-4 mx-auto px-4 md:px-6 lg:px-8">
+                    <div class="w-full md:w-1/4 relative">
+                        <Input
+                            ref="searchInput"
+                            v-model="searchQuery"
+                            type="search"
+                            placeholder="O‘qituvchi qidirish..."
+                            class="w-full rounded-lg px-4 py-3 text-gray-900 dark:text-gray-100
+                                   bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700
+                                   shadow-sm focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600
+                                   focus:outline-none transition-all"
+                        />
+                        <div v-if="isSearching" class="absolute right-2 top-3 text-gray-500"></div>
+                    </div>
+                    <div class="w-full md:w-auto flex justify-start md:justify-end">
+                        <Button
+                            variant="secondary"
+                            @click="openAddModal"
+                            class="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-lg
+                                   text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700 shadow-sm
+                                   hover:bg-gray-100 dark:hover:bg-neutral-900 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
+                        >
+                            Yangi O‘qituvchi
+                        </Button>
+                    </div>
+                </div>
+
+                <!-- Table or Empty State -->
+                <div v-if="teachers.length > 0" class="mx-auto px-4 md:px-6 lg:px-8">
+                    <div class="rounded-2xl overflow-hidden border border-gray-300 dark:border-gray-700">
+                        <Table class="w-full">
+                            <TableHeader>
+                                <TableRow class="bg-gray-50 dark:bg-neutral-900 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                    <TableHead class="px-4 py-3">ID</TableHead>
+                                    <TableHead class="px-4 py-3">Ism</TableHead>
+                                    <TableHead class="px-4 py-3">Telefon</TableHead>
+                                    <TableHead class="px-4 py-3 text-center">Amallar</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                <TableRow
+                                    v-for="teacher in teachers"
+                                    :key="teacher.id"
+                                    class="hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors"
+                                >
+                                    <TableCell class="px-4 py-3">{{ teacher.id }}</TableCell>
+                                    <TableCell class="px-4 py-3">{{ teacher.full_name }}</TableCell>
+                                    <TableCell class="px-4 py-3">{{ teacher.phone }}</TableCell>
+                                    <TableCell class="px-4 py-3 text-center">
+                                        <div class="flex items-center justify-center gap-3">
+                                            <button @click="openEditModal(teacher)">
+                                                <PencilSquareIcon class="w-5 h-5" />
+                                            </button>
+                                            <button @click="openDeleteModal(teacher.id)">
+                                                <TrashIcon class="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
                     </div>
 
-                    <!-- Table or Empty State -->
-                    <div v-if="teachers.length > 0" class="mx-auto px-4 md:px-6 lg:px-8">
-                        <div class="rounded-2xl overflow-hidden border border-gray-300 dark:border-gray-700">
-                            <Table class="w-full">
-                                <TableHeader>
-                                    <TableRow class="bg-gray-50 dark:bg-neutral-900 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                        <TableHead class="px-4 py-3">ID</TableHead>
-                                        <TableHead class="px-4 py-3">Ism</TableHead>
-                                        <TableHead class="px-4 py-3">Telefon</TableHead>
-                                        <TableHead class="px-4 py-3 text-center">Amallar</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    <TableRow
-                                        v-for="teacher in teachers"
-                                        :key="teacher.id"
-                                        class="hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors"
-                                    >
-                                        <TableCell class="px-4 py-3">{{ teacher.id }}</TableCell>
-                                        <TableCell class="px-4 py-3">{{ teacher.full_name }}</TableCell>
-                                        <TableCell class="px-4 py-3">{{ teacher.phone }}</TableCell>
-                                        <TableCell class="px-4 py-3 text-center">
-                                            <div class="flex items-center justify-center gap-3">
-                                                <button @click="openEditModal(teacher)">
-                                                    <PencilSquareIcon class="w-5 h-5" />
-                                                </button>
-                                                <button @click="openDeleteModal(teacher.id)">
-                                                    <TrashIcon class="w-5 h-5" />
-                                                </button>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                </TableBody>
-                            </Table>
+                    <!-- Pagination -->
+                    <div v-if="pagination.total > pagination.per_page" class="flex justify-end items-center gap-3 p-4">
+                        <Button
+                            class="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-lg
+                                   text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700 shadow-sm
+                                   hover:bg-gray-100 dark:hover:bg-neutral-900 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
+                            variant="secondary"
+                            @click="goToPage(pagination.current_page - 1)"
+                            :disabled="pagination.current_page === 1"
+                        >
+                            Orqaga
+                        </Button>
+                        <div class="font-semibold text-gray-700 dark:text-gray-300">
+                            {{ pagination.current_page }} / {{ pagination.total_pages }}
                         </div>
-
-                        <!-- Pagination -->
-                        <div v-if="pagination.total > pagination.per_page" class="flex justify-end items-center gap-3 p-4">
-                            <Button
-                                class="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-lg
-                                       text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700 shadow-sm
-                                       hover:bg-gray-100 dark:hover:bg-neutral-900 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
-                                variant="secondary"
-                                @click="goToPage(pagination.current_page - 1)"
-                                :disabled="pagination.current_page === 1"
-                            >
-                                Orqaga
-                            </Button>
-                            <div class="font-semibold text-gray-700 dark:text-gray-300">
-                                {{ pagination.current_page }} / {{ pagination.total_pages }}
-                            </div>
-                            <Button
-                                class="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-lg
-                                       text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700 shadow-sm
-                                       hover:bg-gray-100 dark:hover:bg-neutral-900 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
-                                variant="secondary"
-                                @click="goToPage(pagination.current_page + 1)"
-                                :disabled="pagination.current_page === pagination.total_pages"
-                            >
-                                Keyingi
-                            </Button>
-                        </div>
+                        <Button
+                            class="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-lg
+                                   text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700 shadow-sm
+                                   hover:bg-gray-100 dark:hover:bg-neutral-900 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
+                            variant="secondary"
+                            @click="goToPage(pagination.current_page + 1)"
+                            :disabled="pagination.current_page === pagination.total_pages"
+                        >
+                            Keyingi
+                        </Button>
                     </div>
+                </div>
 
-                    <!-- Empty State -->
-                    <div v-else class="text-center text-gray-500 py-10 text-lg font-semibold">
-                        O‘qituvchilar topilmadi.
-                    </div>
+                <!-- Empty State -->
+                <div v-else class="text-center text-gray-500 py-10 text-lg font-semibold">
+                    O‘qituvchilar topilmadi.
+                </div>
             </div>
         </div>
 
@@ -506,8 +503,8 @@ const handleEdit = async () => {
                         type="button"
                         @click="handleAdd"
                         class="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg
-                               text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700 shadow-sm
-                               hover:bg-gray-100 dark:hover:bg-neutral-900 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
+                               text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 border border-blue-600 dark:border-blue-700 shadow-sm
+                               focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
                     >
                         Qo‘shish
                     </button>
@@ -580,8 +577,8 @@ const handleEdit = async () => {
                         type="button"
                         @click="handleEdit"
                         class="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg
-                               text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700 shadow-sm
-                               hover:bg-gray-100 dark:hover:bg-neutral-900 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
+                               text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 border border-blue-600 dark:border-blue-700 shadow-sm
+                               focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
                     >
                         Yangilash
                     </button>
