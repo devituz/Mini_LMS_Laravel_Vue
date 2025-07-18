@@ -167,8 +167,7 @@ const handleDelete = (id: number) => {
                                         <Checkbox
                                             :checked="isSelected(teacher.id)"
                                             @update:checked="() => toggleSelection(teacher.id)"
-                                            class="w-5 h-5 rounded-md border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700 shadow-sm
-                                               hover:bg-gray-100 dark:hover:bg-neutral-900 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
+                                            class="w-5 h-5 rounded-md"
                                         />
                                     </TableCell>
                                     <TableCell class="px-4 py-3">{{ teacher.id }}</TableCell>
