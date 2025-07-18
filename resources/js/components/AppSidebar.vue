@@ -19,6 +19,11 @@ const mainNavItems: NavItem[] = [
         href: '/teachers',
         icon: UserIcon,
     },
+    {
+        title: 'O‘quvchilar',
+        href: '/students',
+        icon: UserIcon,
+    },
 ];
 
 const footerNavItems: NavItem[] = [
