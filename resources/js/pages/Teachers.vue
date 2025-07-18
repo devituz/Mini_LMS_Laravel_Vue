@@ -330,6 +330,7 @@ const handleEdit = async () => {
                                     <TableHead class="px-4 py-3">ID</TableHead>
                                     <TableHead class="px-4 py-3">Ism</TableHead>
                                     <TableHead class="px-4 py-3">Telefon</TableHead>
+                                    <TableHead class="px-4 py-3">Create at</TableHead>
                                     <TableHead class="px-4 py-3 text-center">Amallar</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -342,6 +343,7 @@ const handleEdit = async () => {
                                     <TableCell class="px-4 py-3">{{ teacher.id }}</TableCell>
                                     <TableCell class="px-4 py-3">{{ teacher.full_name }}</TableCell>
                                     <TableCell class="px-4 py-3">{{ teacher.phone }}</TableCell>
+                                    <TableCell class="px-4 py-3">{{ teacher.created_at_formatted  }}</TableCell>
                                     <TableCell class="px-4 py-3 text-center">
                                         <div class="flex items-center justify-center gap-3">
                                             <button @click="openEditModal(teacher)">

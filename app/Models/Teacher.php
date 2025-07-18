@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class Teacher extends Authenticatable
+class Teacher extends BaseModel
 {
     use HasFactory, Notifiable;
 
@@ -16,19 +16,7 @@ class Teacher extends Authenticatable
         'password',
     ];
 
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
 
-    protected $casts = [
-        'password' => 'hashed',
-    ];
-
-    public function getAuthIdentifierName()
-    {
-        return 'phone';
-    }
 
 
 

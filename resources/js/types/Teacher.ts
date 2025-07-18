@@ -7,6 +7,8 @@ export interface Teacher {
     full_name: string;
     phone: string;
     password: string;
+    created_at_formatted : string;
+
 }
 
 export interface Pagination {
