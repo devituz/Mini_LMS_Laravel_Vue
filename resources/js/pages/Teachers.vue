@@ -1,3 +1,4 @@
+
 <script setup lang="ts">
 import { Head, Link, usePage, router } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
@@ -138,7 +139,7 @@ const goToPage = (page: number) => {
             route('teachers.index'),
             { search: searchQuery.value, page },
             {
-                preserveState: true,
+                preserveState: false,
                 preserveScroll: true,
                 onSuccess: () => {
                     nextTick(() => {
