@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Settings;
 
-use App\Models\Teacher;
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -16,12 +16,14 @@ class ProfileUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'full_name' => ['required', 'string', 'max:255'],
-            'phone' => [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => [
                 'required',
                 'string',
-                'max:20',
-                Rule::unique(Teacher::class)->ignore($this->user()->id),
+                'lowercase',
+                'email',
+                'max:255',
+                Rule::unique(User::class)->ignore($this->user()->id),
             ],
         ];
     }

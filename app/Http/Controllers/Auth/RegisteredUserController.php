@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\Teacher;
+use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -31,21 +31,24 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'full_name' => 'required|string|max:255',
-            'phone' => 'required|string|max:255|unique:'.Teacher::class.',phone',
+            'name' => 'required|string|max:255',
+            'phone' => 'required|string|max:13|unique:' . User::class,
+            'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $teacher = Teacher::create([
-            'full_name' => $request->full_name,
+        $user = User::create([
+            'name' => $request->name,
             'phone' => $request->phone,
+            'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
 
-        event(new Registered($teacher));
+        event(new Registered($user));
 
-        Auth::login($teacher);
+        Auth::login($user);
 
         return to_route('dashboard');
     }
+
 }

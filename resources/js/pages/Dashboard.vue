@@ -44,11 +44,12 @@ const stats = [
     <Head title="Dashboard" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="p-6 space-y-6">
+        <div class="p-6 space-y-6 ">
             <!-- Statistics Cards -->
-            <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
-                <Card v-for="(item, index) in stats" :key="index">
-                    <CardHeader class="flex flex-row items-center gap-4">
+            <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 ">
+                <Card v-for="(item, index) in stats" :key="index" class="border-gray-300 dark:border-gray-700
+                        shadow-sm focus:ring-2">
+                    <CardHeader class="flex flex-row items-center gap-4 ">
                         <div class="text-3xl p-3 rounded-full bg-gray-100 dark:bg-gray-800">
                             {{ item.icon }}
                         </div>
@@ -62,7 +63,8 @@ const stats = [
                 </Card>
             </div>
 
-            <Card class="min-h-[300px] flex items-center justify-center">
+            <Card class="min-h-[300px] flex items-center justify-center border border-gray-300 dark:border-gray-700
+                        shadow-sm focus:ring-2" >
                 <CardContent class="text-muted-foreground text-sm text-shadow-2xs font-bold font-mono">
                     📊 Grafiklar, jadval yoki so‘nggi faoliyat shu yerda chiqadi
                 </CardContent>
