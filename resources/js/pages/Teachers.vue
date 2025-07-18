@@ -6,6 +6,8 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Input } from '@/components/ui/input';
 import { ref, watch, nextTick } from 'vue';
 import { Button } from '@/components/ui/button';
+import type { CustomPageProps } from '@/types/Teacher';
+
 import { PencilSquareIcon, TrashIcon } from '@heroicons/vue/24/outline';
 import {
     AlertDialog,
@@ -19,36 +21,7 @@ import { debounce } from 'lodash';
 import { useToast } from 'vue-toastification';
 import type { BreadcrumbItem } from '@/types';
 
-// Define interfaces
-interface Teacher {
-    id: number;
-    full_name: string;
-    phone: string;
-    password: string;
-}
 
-interface Pagination {
-    current_page: number;
-    total_pages: number;
-    total: number;
-    per_page: number;
-}
-
-// Extend Inertia's PageProps to include custom properties
-interface CustomPageProps extends PageProps {
-    teachers: Teacher[];
-    pagination: Pagination;
-    search: string;
-    flash: { success?: string };
-    errors: Record<string, string[]>;
-    name?: string;
-    quote?: string;
-    auth?: any; // Replace with specific auth type if known
-    ziggy?: any; // Replace with Ziggy type if using Ziggy
-    sidebarOpen?: boolean;
-}
-
-// Use type assertion instead of generic
 const page = usePage();
 const props = page.props as CustomPageProps;
 
