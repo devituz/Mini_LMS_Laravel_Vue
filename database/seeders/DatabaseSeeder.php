@@ -22,8 +22,8 @@ class DatabaseSeeder extends Seeder
             StudentSeeder::class,
             GroupSeeder::class,
             GroupStudentSeeder::class,
-            DebtSeeder::class,
-            PaymentsSeeder::class,
+//            DebtSeeder::class,
+//            PaymentsSeeder::class,
 
         ]);
     }
