@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\Students;
 
 use App\Http\Controllers\Controller;
-use App\Models\Student;
 use App\Http\Requests\Student\StudentRequest;
+use App\Models\Student;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class StudentsController extends Controller
-{
+    {
 
     public function index(Request $request)
     {

@@ -23,6 +23,10 @@ const mainNavItems: NavItem[] = [
         title: 'O‘quvchilar',
         href: '/students',
         icon: UserIcon,
+    }, {
+        title: 'Groups',
+        href: '/groups',
+        icon: UserIcon,
     },
 ];
 
