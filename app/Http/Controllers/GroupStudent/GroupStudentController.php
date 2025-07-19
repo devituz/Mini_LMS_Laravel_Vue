@@ -57,8 +57,8 @@ class GroupStudentController extends Controller
                 'per_page' => $relations->perPage(),
             ],
             'search' => $search,
-            'students' => $students, // ✅ barcha studentlar
-            'groups' => $groups,     // ✅ barcha guruhlar
+            'students' => $students,
+            'groups' => $groups,
         ]);
     }
 

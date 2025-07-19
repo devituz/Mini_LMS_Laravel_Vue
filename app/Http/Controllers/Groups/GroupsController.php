@@ -45,7 +45,6 @@ class GroupsController extends Controller
             ];
         });
 
-        // Barcha o'qituvchilarni olish
         $teachers = Teacher::select('id', 'full_name')->get();
 
         return Inertia::render('Groups', [
@@ -57,7 +56,7 @@ class GroupsController extends Controller
                 'per_page' => $groups->perPage(),
             ],
             'search' => $search,
-            'teachers' => $teachers, // O'qituvchilar ro'yxati qo'shildi
+            'teachers' => $teachers,
         ]);
     }
 
