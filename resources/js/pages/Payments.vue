@@ -225,10 +225,28 @@ const goToPage = (page: number) => {
                 </div>
 
                 <!-- Pagination -->
-                <div v-if="pagination.total > pagination.per_page" class="flex items-center justify-end gap-3 p-4">
-                    <Button @click="goToPage(pagination.current_page - 1)" :disabled="pagination.current_page === 1"> Previous </Button>
-                    <div class="font-semibold text-gray-700 dark:text-gray-300">{{ pagination.current_page }} / {{ pagination.total_pages }}</div>
-                    <Button @click="goToPage(pagination.current_page + 1)" :disabled="pagination.current_page === pagination.total_pages">
+                <div v-if="pagination.total > pagination.per_page" class="flex justify-end items-center gap-3 p-4">
+                    <Button
+                        class="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-lg
+                               text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700 shadow-sm
+                               hover:bg-gray-100 dark:hover:bg-neutral-900 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
+                        variant="secondary"
+                        @click="goToPage(pagination.current_page - 1)"
+                        :disabled="pagination.current_page === 1"
+                    >
+                        Previous
+                    </Button>
+                    <div class="font-semibold text-gray-700 dark:text-gray-300">
+                        {{ pagination.current_page }} / {{ pagination.total_pages }}
+                    </div>
+                    <Button
+                        class="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-3 font-semibold rounded-lg
+                               text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700 shadow-sm
+                               hover:bg-gray-100 dark:hover:bg-neutral-900 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
+                        variant="secondary"
+                        @click="goToPage(pagination.current_page + 1)"
+                        :disabled="pagination.current_page === pagination.total_pages"
+                    >
                         Next
                     </Button>
                 </div>

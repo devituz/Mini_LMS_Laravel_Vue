@@ -21,6 +21,11 @@ class TeacherSeeder extends Seeder
                 'password' => 'teacher123',
             ],
             [
+                'full_name' => 'Devit',
+                'phone' => '+998901234560',
+                'password' => 'teacher1230',
+            ],
+            [
                 'full_name' => 'Malika Karimova',
                 'phone' => '+998911112233',
                 'password' => 'hello2024',

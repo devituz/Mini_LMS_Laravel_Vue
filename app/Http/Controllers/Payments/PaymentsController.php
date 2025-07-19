@@ -58,6 +58,7 @@ class PaymentsController extends Controller
                 'total' => $payments->total(),
                 'per_page' => $payments->perPage(),
             ],
+            'count' => $payments->total(),
             'search' => $search,
         ]);
     }

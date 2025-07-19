@@ -22,7 +22,7 @@ class GroupsController extends Controller
             $query->whereRaw('LOWER(name) LIKE ?', ["%{$search}%"])
                 ->orWhereRaw('LOWER(time) LIKE ?', ["%{$search}%"])
             )
-            ->with('teacher') // O'qituvchi ma'lumotlarini yuklash
+            ->with('teacher')
             ->latest()
             ->paginate($perPage)
             ->withQueryString();
@@ -56,6 +56,7 @@ class GroupsController extends Controller
                 'total' => $groups->total(),
                 'per_page' => $groups->perPage(),
             ],
+            'count' => $groups->total(),
             'search' => $search,
             'teachers' => $teachers, // O'qituvchilar ro'yxati qo'shildi
         ]);
