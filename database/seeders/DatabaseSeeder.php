@@ -18,9 +18,10 @@ class DatabaseSeeder extends Seeder
 
 
         $this->call([
-            TeacherSeeder::class,
-            StudentSeeder::class,
-            GroupSeeder::class,
+//            TeacherSeeder::class,
+//            StudentSeeder::class,
+//            GroupSeeder::class,
+//            GroupStudentSeeder::class,
             DebtSeeder::class,
             PaymentsSeeder::class,
 

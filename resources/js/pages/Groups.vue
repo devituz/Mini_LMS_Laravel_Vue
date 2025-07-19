@@ -1,12 +1,11 @@
-```vue
 <script setup lang="ts">
 import { Head, usePage, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-import { ref, watch, nextTick } from 'vue';
+import { ref, watch, nextTick, computed } from 'vue';
 import { Button } from '@/components/ui/button';
-import type { CustomPageProps, Group } from '@/types/custom';
+import type { CustomPageProps, Group, Teacher } from '@/types/custom';
 import { PencilSquareIcon, TrashIcon } from '@heroicons/vue/24/outline';
 import {
     AlertDialog,
@@ -16,7 +15,6 @@ import {
     AlertDialogDescription,
     AlertDialogFooter,
 } from '@/components/ui/alert-dialog';
-
 import {
     Select,
     SelectTrigger,
@@ -25,8 +23,7 @@ import {
     SelectGroup,
     SelectLabel,
     SelectItem,
-} from '@/components/ui/select'
-
+} from '@/components/ui/select';
 import { debounce } from 'lodash';
 import { useToast } from 'vue-toastification';
 import type { BreadcrumbItem } from '@/types';
@@ -35,11 +32,11 @@ const page = usePage();
 const props = page.props as CustomPageProps;
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Guruhlar', href: '/groups' },
+    { title: 'Groups', href: '/groups' },
 ];
 
 const groups = ref<Group[]>(props.groups || []);
-const pagination = ref<Pagination>(props.pagination || {
+const pagination = ref(props.pagination || {
     current_page: 1,
     total_pages: 1,
     total: 0,
@@ -55,7 +52,7 @@ const searchInput = ref<HTMLElement | null>(null);
 // Client-side validation errors
 const errors = ref<Record<string, string[]>>({});
 
-// Use toast correctly
+// Use toast
 const toast = useToast();
 
 // Handle flash messages
@@ -75,7 +72,7 @@ watch(
     (serverErrors) => {
         if (Object.keys(serverErrors).length > 0) {
             errors.value = serverErrors;
-            toast.error(serverErrors.error?.[0] || 'Xatolik yuz berdi.', { timeout: 5000 });
+            toast.error(serverErrors.error?.[0] || 'An error occurred.', { timeout: 5000 });
         } else {
             errors.value = {};
         }
@@ -120,7 +117,7 @@ const debouncedSearch = debounce(() => {
             },
             onError: () => {
                 isSearching.value = false;
-                toast.error('Qidiruvda xato yuz berdi.', { timeout: 5000 });
+                toast.error('An error occurred during search.', { timeout: 5000 });
             },
         }
     );
@@ -176,7 +173,7 @@ const handleDelete = () => {
                 router.get(route('groups.index'));
             },
             onError: () => {
-                toast.error('O‘chirishda xato yuz berdi.', { timeout: 5000 });
+                toast.error('An error occurred while deleting.', { timeout: 5000 });
             },
         });
     }
@@ -208,28 +205,28 @@ const validateForm = (group: Partial<Group>) => {
     let isValid = true;
 
     if (!group.name) {
-        errors.value.name = ['Guruh nomi kiritilishi shart.'];
+        errors.value.name = ['Group name is required.'];
         isValid = false;
     }
     if (!group.teacher_id) {
-        errors.value.teacher_id = ['O‘qituvchi tanlanishi shart.'];
+        errors.value.teacher_id = ['Teacher must be selected.'];
         isValid = false;
     }
     if (!group.monthly_fee || isNaN(Number(group.monthly_fee)) || Number(group.monthly_fee) < 0) {
-        errors.value.monthly_fee = ['Oylik to‘lov raqam bo‘lishi va 0 dan katta yoki teng bo‘lishi kerak.'];
+        errors.value.monthly_fee = ['Monthly fee must be a number and greater than or equal to 0.'];
         isValid = false;
     }
     if (!group.start_date || !/^\d{4}-\d{2}-\d{2}$/.test(group.start_date)) {
-        errors.value.start_date = ['Boshlanish sanasi formati noto‘g‘ri (YYYY-MM-DD).'];
+        errors.value.start_date = ['Invalid start date format (YYYY-MM-DD).'];
         isValid = false;
     }
     if (!group.time) {
-        errors.value.time = ['Dars vaqti kiritilishi shart.'];
+        errors.value.time = ['Class time is required.'];
         isValid = false;
     }
 
     if (!isValid) {
-        toast.error('Iltimos, barcha maydonlarni to‘g‘ri to‘ldiring.', { timeout: 5000 });
+        toast.error('Please fill all fields correctly.', { timeout: 5000 });
     }
 
     return isValid;
@@ -248,12 +245,12 @@ const handleAdd = async () => {
             },
             onError: (serverErrors) => {
                 errors.value = serverErrors;
-                toast.error('Server xatosi: Ma’lumotlarni qo‘shib bo‘lmadi.', { timeout: 5000 });
+                toast.error('Server error: Could not add data.', { timeout: 5000 });
             },
         });
     } catch (error) {
-        console.error('Xato:', error);
-        toast.error('Tizim xatosi yuz berdi.', { timeout: 5000 });
+        console.error('Error:', error);
+        toast.error('A system error occurred.', { timeout: 5000 });
     }
 };
 
@@ -300,18 +297,24 @@ const handleEdit = async () => {
             },
             onError: (serverErrors) => {
                 errors.value = serverErrors;
-                toast.error('Server xatosi: Ma’lumotlarni yangilab bo‘lmadi.', { timeout: 5000 });
+                toast.error('Server error: Could not update data.', { timeout: 5000 });
             },
         });
     } catch (error) {
-        console.error('Xato:', error);
-        toast.error('Tizim xatosi yuz berdi.', { timeout: 5000 });
+        console.error('Error:', error);
+        toast.error('A system error occurred.', { timeout: 5000 });
     }
 };
+
+// Computed property to get the selected teacher's name
+const selectedTeacherName = computed(() => {
+    const teacher = teachers.value.find(t => t.id === editGroup.value.teacher_id);
+    return teacher ? teacher.full_name : 'Select a teacher';
+});
 </script>
 
 <template>
-    <Head title="Guruhlar" />
+    <Head title="Groups" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="pt-7 space-y-6">
             <!-- Search -->
@@ -321,7 +324,7 @@ const handleEdit = async () => {
                         ref="searchInput"
                         v-model="searchQuery"
                         type="search"
-                        placeholder="Guruh qidirish..."
+                        placeholder="Search groups..."
                         class="w-full rounded-lg px-4 py-3 text-gray-900 dark:text-gray-100
                                bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700
                                shadow-sm focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600
@@ -337,7 +340,7 @@ const handleEdit = async () => {
                                text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700 shadow-sm
                                hover:bg-gray-100 dark:hover:bg-neutral-900 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
                     >
-                        Yangi Guruh
+                        New Group
                     </Button>
                 </div>
             </div>
@@ -349,13 +352,13 @@ const handleEdit = async () => {
                         <TableHeader>
                             <TableRow class="bg-gray-50 dark:bg-neutral-900 text-sm font-semibold text-gray-700 dark:text-gray-300">
                                 <TableHead class="px-4 py-3">ID</TableHead>
-                                <TableHead class="px-4 py-3">Nomi</TableHead>
-                                <TableHead class="px-4 py-3">O‘qituvchi</TableHead>
-                                <TableHead class="px-4 py-3">Oylik to‘lov</TableHead>
-                                <TableHead class="px-4 py-3">Boshlanish sanasi</TableHead>
-                                <TableHead class="px-4 py-3">Dars vaqti</TableHead>
-                                <TableHead class="px-4 py-3">Yaratilgan sana</TableHead>
-                                <TableHead class="px-4 py-3 text-center">Amallar</TableHead>
+                                <TableHead class="px-4 py-3">Name</TableHead>
+                                <TableHead class="px-4 py-3">Teacher</TableHead>
+                                <TableHead class="px-4 py-3">Monthly Fee</TableHead>
+                                <TableHead class="px-4 py-3">Start Date</TableHead>
+                                <TableHead class="px-4 py-3">Class Time</TableHead>
+                                <TableHead class="px-4 py-3">Created At</TableHead>
+                                <TableHead class="px-4 py-3 text-center">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -396,7 +399,7 @@ const handleEdit = async () => {
                         @click="goToPage(pagination.current_page - 1)"
                         :disabled="pagination.current_page === 1"
                     >
-                        Orqaga
+                        Previous
                     </Button>
                     <div class="font-semibold text-gray-700 dark:text-gray-300">
                         {{ pagination.current_page }} / {{ pagination.total_pages }}
@@ -409,14 +412,14 @@ const handleEdit = async () => {
                         @click="goToPage(pagination.current_page + 1)"
                         :disabled="pagination.current_page === pagination.total_pages"
                     >
-                        Keyingi
+                        Next
                     </Button>
                 </div>
             </div>
 
             <!-- Empty State -->
             <div v-else class="text-center text-gray-500 py-10 text-lg font-semibold">
-                Guruhlar topilmadi.
+                No groups found.
             </div>
         </div>
 
@@ -425,10 +428,10 @@ const handleEdit = async () => {
             <AlertDialogContent class="w-96 p-6 space-y-4">
                 <AlertDialogHeader>
                     <AlertDialogTitle class="text-lg font-bold text-gray-900 dark:text-gray-100">
-                        O‘chirishni tasdiqlang
+                        Confirm Deletion
                     </AlertDialogTitle>
                     <AlertDialogDescription class="text-gray-600 dark:text-gray-300">
-                        Bu guruhni o‘chirishni xohlaysizmi?
+                        Are you sure you want to delete this group?
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter class="flex justify-end gap-4">
@@ -439,7 +442,7 @@ const handleEdit = async () => {
                                text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700 shadow-sm
                                hover:bg-gray-100 dark:hover:bg-neutral-900 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
                     >
-                        Bekor qilish
+                        Cancel
                     </button>
                     <button
                         type="button"
@@ -448,7 +451,7 @@ const handleEdit = async () => {
                                text-white bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 border border-red-600 dark:border-red-700 shadow-sm
                                focus:ring-2 focus:ring-red-500 focus:outline-none transition-all"
                     >
-                        O‘chirish
+                        Delete
                     </button>
                 </AlertDialogFooter>
             </AlertDialogContent>
@@ -459,10 +462,10 @@ const handleEdit = async () => {
             <AlertDialogContent class="w-full max-w-2xl p-8 space-y-6">
                 <AlertDialogHeader>
                     <AlertDialogTitle class="text-xl font-bold text-gray-900 dark:text-gray-100">
-                        Yangi Guruh Qo‘shish
+                        Add New Group
                     </AlertDialogTitle>
                     <AlertDialogDescription class="text-gray-600 dark:text-gray-300">
-                        Yangi guruh ma’lumotlarini kiriting.
+                        Enter the details for the new group.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <div class="grid grid-cols-2 gap-6">
@@ -470,7 +473,7 @@ const handleEdit = async () => {
                         <div>
                             <Input
                                 v-model="newGroup.name"
-                                placeholder="Guruh nomi"
+                                placeholder="Group Name"
                                 class="w-full rounded-lg px-5 py-4 text-lg text-gray-900 dark:text-gray-100
                                        bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700
                                        shadow-sm focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
@@ -485,11 +488,11 @@ const handleEdit = async () => {
                             >
                                 <SelectTrigger
                                     class="w-full rounded-lg px-5 py-4 text-lg text-gray-900 dark:text-gray-100
-                   bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700
-                   shadow-sm focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
+                                           bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700
+                                           shadow-sm focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
                                     :class="{ 'border-red-500': errors.teacher_id?.length }"
                                 >
-                                    <SelectValue placeholder="Tanlang" />
+                                    <SelectValue placeholder="Select a teacher" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem
@@ -508,7 +511,7 @@ const handleEdit = async () => {
                         <div>
                             <Input
                                 v-model="newGroup.monthly_fee"
-                                placeholder="Oylik to‘lov"
+                                placeholder="Monthly Fee"
                                 type="number"
                                 class="w-full rounded-lg px-5 py-4 text-lg text-gray-900 dark:text-gray-100
                                        bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700
@@ -520,7 +523,7 @@ const handleEdit = async () => {
                         <div>
                             <Input
                                 v-model="newGroup.start_date"
-                                placeholder="Boshlanish sanasi (YYYY-MM-DD)"
+                                placeholder="Start Date (YYYY-MM-DD)"
                                 class="w-full rounded-lg px-5 py-4 text-lg text-gray-900 dark:text-gray-100
                                        bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700
                                        shadow-sm focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
@@ -531,7 +534,7 @@ const handleEdit = async () => {
                         <div>
                             <Input
                                 v-model="newGroup.time"
-                                placeholder="Dars vaqti"
+                                placeholder="Class Time"
                                 class="w-full rounded-lg px-5 py-4 text-lg text-gray-900 dark:text-gray-100
                                        bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700
                                        shadow-sm focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
@@ -549,7 +552,7 @@ const handleEdit = async () => {
                                text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700 shadow-sm
                                hover:bg-gray-100 dark:hover:bg-neutral-900 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
                     >
-                        Bekor qilish
+                        Cancel
                     </button>
                     <button
                         type="button"
@@ -558,7 +561,7 @@ const handleEdit = async () => {
                                text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 border border-blue-600 dark:border-blue-700 shadow-sm
                                focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
                     >
-                        Qo‘shish
+                        Add
                     </button>
                 </AlertDialogFooter>
             </AlertDialogContent>
@@ -569,10 +572,10 @@ const handleEdit = async () => {
             <AlertDialogContent class="w-full max-w-2xl p-8 space-y-6">
                 <AlertDialogHeader>
                     <AlertDialogTitle class="text-xl font-bold text-gray-900 dark:text-gray-100">
-                        Guruh Ma’lumotlarini Tahrirlash
+                        Edit Group Details
                     </AlertDialogTitle>
                     <AlertDialogDescription class="text-gray-600 dark:text-gray-300">
-                        Guruh ma’lumotlarini yangilang.
+                        Update the group's information.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <div class="grid grid-cols-2 gap-6">
@@ -580,7 +583,7 @@ const handleEdit = async () => {
                         <div>
                             <Input
                                 v-model="editGroup.name"
-                                placeholder="Guruh nomi"
+                                placeholder="Group Name"
                                 class="w-full rounded-lg px-5 py-4 text-lg text-gray-900 dark:text-gray-100
                                        bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700
                                        shadow-sm focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
@@ -589,21 +592,20 @@ const handleEdit = async () => {
                             <p v-if="errors.name?.length" class="text-red-500 text-sm mt-1">{{ errors.name[0] }}</p>
                         </div>
                         <div>
-                            <Select v-model="editGroup.teacher_id">
+                            <Select v-model.number="editGroup.teacher_id">
                                 <SelectTrigger
                                     id="teacher"
                                     class="w-full rounded-lg px-4 py-2 text-base text-gray-900 dark:text-gray-100
-               bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700
-               shadow-sm focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none
-               transition-all"
+                                           bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700
+                                           shadow-sm focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none
+                                           transition-all"
                                     :class="{ 'border-red-500': errors.teacher_id?.length }"
                                 >
                                     <SelectValue :placeholder="selectedTeacherName" />
                                 </SelectTrigger>
-
                                 <SelectContent>
                                     <SelectGroup>
-                                        <SelectLabel>O'qituvchilar</SelectLabel>
+                                        <SelectLabel>Teachers</SelectLabel>
                                         <SelectItem
                                             v-for="teacher in teachers"
                                             :key="teacher.id"
@@ -615,31 +617,27 @@ const handleEdit = async () => {
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>
-                            <p v-if="errors.teacher_id?.length" class="text-red-500 text-sm mt-1">
-                                {{ errors.teacher_id[0] }}
-                            </p>
+                            <p v-if="errors.teacher_id?.length" class="text-red-500 text-sm mt-1">{{ errors.teacher_id[0] }}</p>
                         </div>
-
                     </div>
                     <div class="space-y-6">
                         <div>
                             <Input
                                 :model-value="editGroup.monthly_fee"
                                 @update:model-value="val => editGroup.monthly_fee = val"
-                                placeholder="Oylik to‘lov"
+                                placeholder="Monthly Fee"
                                 type="number"
                                 class="w-full rounded-lg px-5 py-4 text-lg text-gray-900 dark:text-gray-100
-         bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700
-         shadow-sm focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
+                                       bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700
+                                       shadow-sm focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
                                 :class="{ 'border-red-500': errors.monthly_fee?.length }"
                             />
-
                             <p v-if="errors.monthly_fee?.length" class="text-red-500 text-sm mt-1">{{ errors.monthly_fee[0] }}</p>
                         </div>
                         <div>
                             <Input
                                 v-model="editGroup.start_date"
-                                placeholder="Boshlanish sanasi (YYYY-MM-DD)"
+                                placeholder="Start Date (YYYY-MM-DD)"
                                 class="w-full rounded-lg px-5 py-4 text-lg text-gray-900 dark:text-gray-100
                                        bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700
                                        shadow-sm focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
@@ -650,7 +648,7 @@ const handleEdit = async () => {
                         <div>
                             <Input
                                 v-model="editGroup.time"
-                                placeholder="Dars vaqti"
+                                placeholder="Class Time"
                                 class="w-full rounded-lg px-5 py-4 text-lg text-gray-900 dark:text-gray-100
                                        bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700
                                        shadow-sm focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
@@ -668,7 +666,7 @@ const handleEdit = async () => {
                                text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 border border-gray-300 dark:border-gray-700 shadow-sm
                                hover:bg-gray-100 dark:hover:bg-neutral-900 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-600 focus:outline-none transition-all"
                     >
-                        Bekor qilish
+                        Cancel
                     </button>
                     <button
                         type="button"
@@ -677,11 +675,10 @@ const handleEdit = async () => {
                                text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 border border-blue-600 dark:border-blue-700 shadow-sm
                                focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
                     >
-                        Yangilash
+                        Update
                     </button>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
     </AppLayout>
 </template>
-```

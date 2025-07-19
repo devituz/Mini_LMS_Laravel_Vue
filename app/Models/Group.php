@@ -31,9 +31,13 @@ class Group extends Model
     }
 
 
-    public function students(): BelongsToMany
+    // Group.php
+    public function students()
     {
-        return $this->belongsToMany(Student::class);
+        return $this->belongsToMany(Student::class)
+            ->using(GroupStudent::class) // <- bu yerda modeldan foydalanish
+            ->withTimestamps();          // Agar jadvalda created_at bor bo‘lsa
     }
+
 
 }

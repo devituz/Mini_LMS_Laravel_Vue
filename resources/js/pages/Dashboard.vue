@@ -13,28 +13,28 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const stats = [
     {
-        title: 'Jami o‘quvchilar',
+        title: 'Total Students',
         value: props.studentCount,
         icon: '🎓',
     },
     {
-        title: 'Jami o‘qituvchilar',
+        title: 'Total Teachers',
         value: props.teacherCount,
         icon: '🧑‍🏫',
     },
     {
-        title: 'Jami guruhlar',
+        title: 'Total Groups',
         value: props.groupCount,
         icon: '👥',
     },
     {
-        title: 'Bugungi tushum',
-        value: `${props.todaysRevenue.toLocaleString()} so‘m`,
+        title: "Today's Revenue",
+        value: `${props.todaysRevenue.toLocaleString()} UZS`,
         icon: '💰',
     },
     {
-        title: 'Umumiy qarzdorlik',
-        value: `${props.totalDebt.toLocaleString()} so‘m`,
+        title: 'Total Debt',
+        value: `${props.totalDebt.toLocaleString()} UZS`,
         icon: '📉',
     },
 ];
@@ -47,9 +47,8 @@ const stats = [
         <div class="p-8 space-y-6">
             <!-- Statistics Cards -->
             <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-2 xl:grid-cols-5 ">
-                <Card v-for="(item, index) in stats" :key="index" class="border-gray-300 dark:border-gray-700
-                        shadow-sm focus:ring-2">
-                    <CardHeader class="flex flex-row items-center gap-4 ">
+                <Card v-for="(item, index) in stats" :key="index" class="border-gray-300 dark:border-gray-700 shadow-sm focus:ring-2">
+                    <CardHeader class="flex flex-row items-center gap-4">
                         <div class="text-3xl p-3 rounded-full bg-gray-100 dark:bg-gray-800">
                             {{ item.icon }}
                         </div>
@@ -63,16 +62,11 @@ const stats = [
                 </Card>
             </div>
 
-            <Card class="min-h-[300px] flex items-center justify-center border border-gray-300 dark:border-gray-700
-                        shadow-sm focus:ring-2" >
+            <Card class="min-h-[300px] flex items-center justify-center border border-gray-300 dark:border-gray-700 shadow-sm focus:ring-2">
                 <CardContent class="text-muted-foreground text-sm text-shadow-2xs font-bold font-mono">
-                    📊 Grafiklar, jadval yoki so‘nggi faoliyat shu yerda chiqadi
+                    📊 Charts, tables, or recent activity will appear here.
                 </CardContent>
             </Card>
         </div>
     </AppLayout>
 </template>
-
-
-
-

@@ -1,7 +1,10 @@
 <?php
 
 use App\Http\Controllers\Dashboard\DashboardController;
+use App\Http\Controllers\Debt\DebtController;
 use App\Http\Controllers\Groups\GroupsController;
+use App\Http\Controllers\GroupStudent\GroupStudentController;
+use App\Http\Controllers\Payments\PaymentsController;
 use App\Http\Controllers\Students\StudentsController;
 use App\Http\Controllers\Teacher\TeacherController;
 use Illuminate\Support\Facades\Route;
@@ -16,6 +19,9 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('teachers', TeacherController::class)->names('teachers');
     Route::resource('students',StudentsController::class)->names('students');
     Route::resource('groups',GroupsController::class)->names('groups');
+    Route::resource('group-students',GroupStudentController::class)->names('group-students');
+    Route::resource('debts',DebtController::class)->names('debts');
+    Route::resource('payments',PaymentsController::class)->names('payments');
 });
 
 require __DIR__.'/settings.php';

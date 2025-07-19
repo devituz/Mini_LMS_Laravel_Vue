@@ -42,7 +42,7 @@ class LoginRequest extends FormRequest
         $this->ensureIsNotRateLimited();
 
         // 🔒 Faqat `teacher` guard orqali tekshiramiz
-        if (! Auth::guard('teacher')->attempt($this->only('phone', 'password'), $this->boolean('remember'))) {
+        if (! Auth::guard()->attempt($this->only('phone', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

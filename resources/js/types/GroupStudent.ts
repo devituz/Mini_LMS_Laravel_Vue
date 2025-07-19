@@ -1,15 +1,20 @@
-// types/custom.ts
-
 import { PageProps } from '@inertiajs/core';
 
 export interface Student {
     id: number;
     full_name: string;
-    phone: string;
-    birth_date: string | null;
-    balance: string;
-    created_at_formatted: string;
+}
 
+export interface Group {
+    id: number;
+    name: string;
+}
+
+export interface GroupStudent {
+    id: number;
+    student: Student;
+    group: Group;
+    created_at: string;
 }
 
 export interface Pagination {
@@ -19,8 +24,8 @@ export interface Pagination {
     per_page: number;
 }
 
-export interface CustomPageProps extends PageProps {
-    students: Student[]; // <<=== Ahamiyat bering: teachers emas, students
+export interface GroupStudentPageProps extends PageProps {
+    relations: GroupStudent[];
     pagination: Pagination;
     search: string;
     flash: { success?: string };

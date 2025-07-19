@@ -26,7 +26,7 @@ class StudentsController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
-        // birth_date formatlash
+
         $formattedStudents = collect($students->items())->map(function ($student) {
             return [
                 ...$student->toArray(),

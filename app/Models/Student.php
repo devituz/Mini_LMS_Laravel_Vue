@@ -24,12 +24,21 @@ class Student extends BaseModel
     ];
 
 
+//
+//
+//    public function groups()
+//    {
+//        return $this->belongsToMany(Group::class)->withTimestamps();
+//    }
 
-
+// Student.php
     public function groups()
     {
-        return $this->belongsToMany(Group::class)->withTimestamps();
+        return $this->belongsToMany(Group::class, 'group_student')
+            ->using(GroupStudent::class)
+            ->withTimestamps();
     }
+
 
 
 }
